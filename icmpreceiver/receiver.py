@@ -1,11 +1,12 @@
 #!/usr/bin/python3
+from os import environ
 import socket
 import asyncio
 from struct import unpack
 from datetime import datetime
 
 q = asyncio.Queue()
-_CONSUMERS = 1
+_CONSUMERS = int(environ.get('RECEIVER_TASKS'))
 
 
 async def produce():
