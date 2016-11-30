@@ -34,11 +34,11 @@ async def produce():
 
 
 async def consume(name):
-    # c = 0
+    c = 0
     while True:
-        # c += 1
+        c += 1
         value = await q.get()
-        # print(c, name, value)
+        print(c, name, value)
 
 loop = asyncio.get_event_loop()
 loop.create_task(produce())

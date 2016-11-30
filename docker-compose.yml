@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+    icmpreceiver:
+        image: ispm/icmpreceiver
+        environment:
+            - RECEIVER_TASKS=1
+        tty: true
