@@ -86,10 +86,10 @@ class ZabbixHelpper(object):
             )
             return call_rtrn
         except ZabbixAPIException as exc:
-            # if str(exc).startswith("('Error -32602:"):
-            raise ZabbixAlreadyExistsException(
-                'Host %s already exists' % host_name
-            ) from exc
+            if str(exc).startswith("('Error -32602:"):
+                raise ZabbixAlreadyExistsException(
+                    'Host %s already exists' % host_name
+                ) from exc
 
 
 """ Usage example
