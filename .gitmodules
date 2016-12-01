@@ -1,0 +1,3 @@
+[submodule "pyZabbixSender"]
+	path = pyZabbixSender
+	url = git@github.com:kmomberg/pyZabbixSender.git
