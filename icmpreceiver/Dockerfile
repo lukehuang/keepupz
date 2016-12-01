@@ -4,6 +4,7 @@ MAINTAINER vagner.guedes@ispm.com
 
 RUN mkdir -p /code/
 COPY receiver.py /code/receiver.py
+COPY pyZabbixSender.py /code/pyZabbixSender.py
 
 COPY requirements.txt /code/requirements.txt
 RUN pip install -r /code/requirements.txt
