@@ -61,6 +61,24 @@ class ZabbixHelpper(object):
             _getTemplateId
             _getHostgroupId
 
+        Raises ZabbixAlreadyExistsException on atempt to create an existent
+        host (by hostname)
+
+
+        Usage example:
+
+        zbxHelpper = ZabbixHelpper()
+        try:
+            id = zbxHelpper.createHost(
+                'my_host',
+                '10.10.10.10',
+                'my_grp',
+                'my_template'
+            )
+            print(id)
+        except ZabbixAlreadyExistsException as e:
+            print(e.message)
+
         """
         template_id = self._getTemplateId(template_name)
         host_group_id = self._getHostgroupId(group_name)
@@ -87,26 +105,8 @@ class ZabbixHelpper(object):
             return call_rtrn
         except ZabbixAPIException as exc:
             if str(exc).startswith("('Error -32602:"):
-                raise ZabbixAlreadyExistsException(
-                    'Host %s already exists' % host_name
-                ) from exc
-
-
-""" Usage example
-
-zbxHelpper = ZabbixHelpper()
-try:
-    id = zbxHelpper.createHost(
-        '10_10_10_10',
-        '10.10.10.10',
-        'BGAN',
-        'ISPM - BGAN'
-    )
-except ZabbixAlreadyExistsException:
-    id = "Already exists"
-print(id)
-
-"""
+                ex_msg = 'Host %s already exists' % host_name
+                raise ZabbixAlreadyExistsException(ex_msg) from exc
 
 
 async def produce():
