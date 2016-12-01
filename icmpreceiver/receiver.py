@@ -1,12 +1,19 @@
 #!/usr/bin/python3
-from os import environ
 import socket
 import asyncio
+from os import environ
 from struct import unpack
 from datetime import datetime
 
 q = asyncio.Queue()
 _CONSUMERS = int(environ.get('RECEIVER_TASKS'))
+_ZBX_SERVER = environ.get('ZBX_SERVER')
+_ZBX_USERNAME = environ.get('ZBX_USERNAME')
+_ZBX_PASSWORD = environ.get('ZBX_PASSWORD')
+_ZBX_BGAN_TEMPLATE = environ.get('ZBX_BGAN_TEMPLATE')
+_ZBX_BGAN_HOSTGROUP = environ.get('ZBX_BGAN_HOSTGROUP')
+_ZBX_BGAN_ITEM = environ.get('ZBX_BGAN_ITEM')
+_ZBX_BGAN_KEY = environ.get('ZBX_BGAN_KEY')
 
 
 async def produce():
