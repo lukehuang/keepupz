@@ -4,6 +4,8 @@ import asyncio
 from os import environ
 from struct import unpack
 from datetime import datetime
+from pyzabbix import ZabbixAPI
+from pyzabbix import ZabbixAPIException
 
 q = asyncio.Queue()
 _CONSUMERS = int(environ.get('RECEIVER_TASKS'))
@@ -14,6 +16,97 @@ _ZBX_BGAN_TEMPLATE = environ.get('ZBX_BGAN_TEMPLATE')
 _ZBX_BGAN_HOSTGROUP = environ.get('ZBX_BGAN_HOSTGROUP')
 _ZBX_BGAN_ITEM = environ.get('ZBX_BGAN_ITEM')
 _ZBX_BGAN_KEY = environ.get('ZBX_BGAN_KEY')
+
+
+class ZabbixNotFoundException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class ZabbixAlreadyExistsException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class ZabbixHelpper(object):
+    def __init__(self):
+        self.zapi = ZabbixAPI(_ZBX_SERVER)
+        self.zapi.login(
+            _ZBX_USERNAME,
+            _ZBX_PASSWORD
+        )
+
+    # Get Zabbix group ID by hostgroup name
+    def _getHostgroupId(self, hostgroup_name):
+        hostgroups = self.zapi.hostgroup.get(
+            filter={'name': hostgroup_name}
+        )
+        if not hostgroups:
+            raise ZabbixNotFoundException("Hostgroup not found")
+        return int(hostgroups[0]['groupid'])
+
+    # Get Zabbix template ID by template name
+    def _getTemplateId(self, template_name):
+        templates = self.zapi.template.get(
+            filter={'name': template_name}
+        )
+        if not templates:
+            raise ZabbixNotFoundException("Template not found")
+        return int(templates[0]['templateid'])
+
+    def createHost(self, host_name, ip, group_name, template_name):
+        """ Create one host in the Zabbix server
+
+        Raises ZabbixNotFound exceptions from:
+            _getTemplateId
+            _getHostgroupId
+
+        """
+        template_id = self._getTemplateId(template_name)
+        host_group_id = self._getHostgroupId(group_name)
+
+        groups = [{'groupid': host_group_id}]
+        templates = [{'templateid': template_id}]
+        interfaces = [{
+            'ip': ip,
+            'useip': 1,
+            "dns": "",
+            "main": 1,
+            "type": 1,
+            "port": "10050"
+        }]
+
+        try:
+            call_rtrn = self.zapi.host.create(
+                groups=groups,
+                host=host_name,
+                inventory_mode=1,
+                templates=templates,
+                interfaces=interfaces
+            )
+            return call_rtrn
+        except ZabbixAPIException as exc:
+            # if str(exc).startswith("('Error -32602:"):
+            raise ZabbixAlreadyExistsException(
+                'Host %s already exists' % host_name
+            ) from exc
+
+
+""" Usage example
+
+zbxHelpper = ZabbixHelpper()
+try:
+    id = zbxHelpper.createHost(
+        '10_10_10_10',
+        '10.10.10.10',
+        'BGAN',
+        'ISPM - BGAN'
+    )
+except ZabbixAlreadyExistsException:
+    id = "Already exists"
+print(id)
+
+"""
 
 
 async def produce():
