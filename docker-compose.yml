@@ -5,7 +5,7 @@ services:
         image: ispm/icmpreceiver
         environment:
             - RECEIVER_TASKS=1
-            - ZBX_SERVER=192.168.8.23
+            - ZBX_SERVER=http://192.168.8.23
             - ZBX_USERNAME=Admin
             - ZBX_PASSWORD=zabbix
             - ZBX_BGAN_TEMPLATE=ISPM - BGAN
