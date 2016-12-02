@@ -1,1 +1,2 @@
 pyzabbix==0.7.4
+janus==0.2.3
