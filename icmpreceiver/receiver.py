@@ -28,8 +28,15 @@ class ZabbixAlreadyExistsException(Exception):
         self.message = message
 
 
+class ZabbixParameterException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class ZabbixHelpper(object):
-    def __init__(self):
+    def __init__(self, group_name=None, template_name=None):
+        self.group_name = group_name
+        self.template_name = template_name
         self.zapi = ZabbixAPI(_ZBX_SERVER)
         self.zapi.login(
             _ZBX_USERNAME,
@@ -54,7 +61,7 @@ class ZabbixHelpper(object):
             raise ZabbixNotFoundException("Template not found")
         return int(templates[0]['templateid'])
 
-    def createHost(self, host_name, ip, group_name, template_name):
+    def createHost(self, host_name, ip, group_name=None, template_name=None):
         """ Create one host in the Zabbix server
 
         Raises ZabbixNotFound exceptions from:
@@ -79,7 +86,40 @@ class ZabbixHelpper(object):
         except ZabbixAlreadyExistsException as e:
             print(e.message)
 
+        or setting default group_name and template_name on class initialization
+
+        zbxHelpper = ZabbixHelpper(
+            group_name='my_grp',
+            template_name="my_template"
+        )
+        try:
+            id = zbxHelpper.createHost(
+                'my_host',
+                '10.10.10.10'
+            )
+            print(id)
+        except ZabbixAlreadyExistsException as e:
+            print(e.message)
+
+
         """
+        if not group_name:
+            if self.group_name:
+                group_name = self.group_name
+            else:
+                raise ZabbixParameterException(
+                    "No group_name given as parameter or"
+                    "on class initialization"
+                )
+        if not template_name:
+            if self.template_name:
+                template_name = self.template_name
+            else:
+                raise ZabbixParameterException(
+                    "No template_name given as parameter or"
+                    "on class initialization"
+                )
+
         template_id = self._getTemplateId(template_name)
         host_group_id = self._getHostgroupId(group_name)
 
