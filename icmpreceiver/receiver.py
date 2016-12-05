@@ -61,6 +61,7 @@ def consume(name, q):
             print(rtrn)
         except ZabbixAlreadyExistsException as e:
             print(e)
+        zbxHelpper.send_host_availability(ip_addr.replace('.', '_'))
 
 
 def run_receiver_forever():
