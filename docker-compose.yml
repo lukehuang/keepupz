@@ -10,7 +10,7 @@ services:
             - ZBX_PASSWORD=zabbix
             - ZBX_TEMPLATE=ISPM - BGAN
             - ZBX_HOSTGROUP=BGAN
-            - ZBX_ALLOWED_NETWORK=192.168.8.35/32,192.168.8.27/32
+            - ZBX_ALLOWED_NETWORKS=192.168.8.35/32,192.168.8.27/32
             - ZBX_SENDER_KEY=agent.ping
         tty: true
         volumes:
