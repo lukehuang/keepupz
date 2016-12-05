@@ -10,7 +10,7 @@ services:
             - ZBX_PASSWORD=zabbix
             - ZBX_TEMPLATE=ISPM - BGAN
             - ZBX_HOSTGROUP=BGAN
-            - ZBX_NETWORK=192.168.8.35/32
+            - ZBX_ALLOW_NETWORK=192.168.8.35/32
         tty: true
         volumes:
             - /home/vguedes/projects/keepupz/icmpreceiver:/code

@@ -3,6 +3,7 @@
 import janus
 import socket
 import asyncio
+import ipaddress
 import threading
 from os import environ
 from struct import unpack
@@ -14,53 +15,44 @@ from zabbix_helppers import (
 )
 
 
+_ZBX_TEMPLATE = environ.get('ZBX_TEMPLATE')
+_ZBX_HOSTGROUP = environ.get('ZBX_HOSTGROUP')
+_ZBX_ALLOW_NETWORK = environ.get('ZBX_NETWORK')
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
-# _ZBX_BGAN_KEY = environ.get('ZBX_BGAN_KEY')
-# _ZBX_BGAN_ITEM = environ.get('ZBX_BGAN_ITEM')
-_ZBX_BGAN_TEMPLATE = environ.get('ZBX_BGAN_TEMPLATE')
-_ZBX_BGAN_HOSTGROUP = environ.get('ZBX_BGAN_HOSTGROUP')
 
 
 async def produce(q):
-    c = 0
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
     s.setsockopt(socket.SOL_IP, socket.IP_HDRINCL, 1)
     while True:
-        c += 1
-        received = True
         data, addr = s.recvfrom(1058)
         addr = addr[0]
-        header = data[20:28]
-        type, *_ = unpack('bbHHh', header)
 
-        received_time = datetime.now()
+        ip_addr = ipaddress.ip_address(addr)
+        ip_network = ipaddress.ip_network(_ZBX_ALLOW_NETWORK)
 
-        # 8 is icmp echo request
-        if 8 == type:
-            work_queue_item = {
-                "received_addr": addr,
-                "received_datetime": received_time
-            }
-            q.async_q.put_nowait(work_queue_item)
-            # q.async_q.join()
-            print("producer sequence: %s" % c)
-            await asyncio.sleep(0)
+        if ip_addr in ip_network:
+            print ("ip %s in %s" % (addr, _ZBX_NETWORK))
+            header = data[20:28]
+            type, *_ = unpack('bbHHh', header)
+
+            # 8 is icmp echo request
+            if 8 == type:
+                q.async_q.put_nowait(addr)
+                await asyncio.sleep(0)
+        else:
+            print("Skipping: %s" % addr)
 
 
 def consume(name, q):
     zbxHelpper = ZabbixHelpper(
-        group_name=_ZBX_BGAN_HOSTGROUP,
-        template_name=_ZBX_BGAN_TEMPLATE
+        group_name=_ZBX_HOSTGROUP,
+        template_name=_ZBX_TEMPLATE
     )
-    c = 0
     while True:
-        val = q.sync_q.get()
+        ip_addr = q.sync_q.get()
         q.sync_q.task_done()
-        c += 1
-        print("consumer %s processed :%s" % (str(name), str(c)))
-        # print('consumer gotten val: ' + str(val))
-        # print(name, str(val))
-        ip_addr = val['received_addr']
+        print("consumer %s processed :%s" % (str(name), ip_addr))
         try:
             rtrn = zbxHelpper.createHost(
                 ip_addr.replace('.', '_'),
@@ -68,8 +60,7 @@ def consume(name, q):
             )
             print(rtrn)
         except ZabbixAlreadyExistsException as e:
-            pass
-            # print(e)
+            print(e)
 
 
 def run_receiver_forever():
@@ -81,7 +72,10 @@ def run_receiver_forever():
     for x in range(_CONSUMERS):
         t = threading.Thread(
             target=consume,
-            args=(str(x), q)
+            args=(
+                "Thread-%s" % str(x),
+                q
+            )
         )
         t.start()
 
