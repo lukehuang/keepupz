@@ -3,13 +3,14 @@ import socket
 import asyncio
 from os import environ
 from struct import unpack
-from pyzabbix import (
-    ZabbixAPI,
-    ZabbixAPIException
-)
+from datetime import datetime
+from pyzabbix import (ZabbixAPI, ZabbixAPIException)
+from ZabbixSender import (ZabbixSender, ZabbixPacket)
+
 _ZBX_SERVER = environ.get('ZBX_SERVER')
 _ZBX_USERNAME = environ.get('ZBX_USERNAME')
 _ZBX_PASSWORD = environ.get('ZBX_PASSWORD')
+_ZBX_SENDER_KEY = environ.get('ZBX_SENDER_KEY')
 
 
 class ZabbixNotFoundException(Exception):
@@ -25,14 +26,23 @@ class ZabbixParameterException(Exception):
 
 
 class ZabbixHelpper(object):
-    def __init__(self, group_name=None, template_name=None):
+    def __init__(
+        self,
+        group_name=None,
+        template_name=None,
+        zbx_addr=_ZBX_SERVER
+    ):
         self.group_name = group_name
         self.template_name = template_name
-        self.zapi = ZabbixAPI(_ZBX_SERVER)
+        try:
+            self.zapi = ZabbixAPI("http://%s" % _ZBX_SERVER)
+        except Exception as e:
+            raise ZabbixParameterException("Check ZBX_SERVER env var.") from e
         self.zapi.login(
             _ZBX_USERNAME,
             _ZBX_PASSWORD
         )
+        self.zbx_sender = ZabbixSender(zbx_addr, 10051)
 
     # Get Zabbix group ID by hostgroup name
     def _getHostgroupId(self, hostgroup_name):
@@ -148,3 +158,12 @@ class ZabbixHelpper(object):
     def send_host_availability(self, host_name):
         """ Create availability of one host in Zabbix
         """
+        packet = ZabbixPacket()
+        # Marcel, 1 is the default value for availability available
+        packet.add(
+            host_name,
+            _ZBX_SENDER_KEY,
+            1,
+            datetime.timestamp(datetime.now())
+        )
+        self.zbx_sender.send(packet)
