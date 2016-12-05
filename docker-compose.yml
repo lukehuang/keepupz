@@ -4,13 +4,14 @@ services:
     icmpreceiver:
         image: ispm/icmpreceiver
         environment:
-            - CONSUMER_TASKS=10
-            - ZBX_SERVER=http://192.168.8.23
+            - CONSUMER_TASKS=5
+            - ZBX_SERVER=192.168.8.23
             - ZBX_USERNAME=Admin
             - ZBX_PASSWORD=zabbix
             - ZBX_TEMPLATE=ISPM - BGAN
             - ZBX_HOSTGROUP=BGAN
-            - ZBX_ALLOW_NETWORK=192.168.8.35/32
+            - ZBX_ALLOW_NETWORK=192.168.8.35/32,192.168.8.27/32
+            - ZBX_SENDER_KEY=agent.ping
         tty: true
         volumes:
             - /home/vguedes/projects/keepupz/icmpreceiver:/code
