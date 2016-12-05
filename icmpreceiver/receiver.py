@@ -18,6 +18,7 @@ from zabbix_helppers import (
 _ZBX_TEMPLATE = environ.get('ZBX_TEMPLATE')
 _ZBX_HOSTGROUP = environ.get('ZBX_HOSTGROUP')
 _ZBX_ALLOWED_NETWORKS = environ.get('ZBX_ALLOWED_NETWORK').split(',')
+
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
 
 
@@ -29,7 +30,7 @@ async def produce(q):
         addr = addr[0]
 
         ip_addr = ipaddress.ip_address(addr)
-        ip_networks = [ipaddress.ip_network(x) for x in _ZBX_ALLOWED_NETWORK]
+        ip_networks = [ipaddress.ip_network(x) for x in _ZBX_ALLOWED_NETWORKS]
 
         if [network for network in ip_networks if ip_addr in network]:
             header = data[20:28]
@@ -37,7 +38,7 @@ async def produce(q):
 
             # 8 is icmp echo request
             if 8 == type:
-                q.async_q.put_nowait(addr)
+                q.async_q.put_nowait((addr, datetime.now()))
                 await asyncio.sleep(0)
         else:
             print("Skipping: %s" % addr)
@@ -49,7 +50,7 @@ def consume(name, q):
         template_name=_ZBX_TEMPLATE
     )
     while True:
-        ip_addr = q.sync_q.get()
+        ip_addr, arrived_datetime = q.sync_q.get()
         q.sync_q.task_done()
         print("consumer %s processed :%s" % (str(name), ip_addr))
         try:
@@ -60,7 +61,10 @@ def consume(name, q):
             print(rtrn)
         except ZabbixAlreadyExistsException as e:
             print(e)
-        zbxHelpper.send_host_availability(ip_addr.replace('.', '_'))
+        zbxHelpper.send_host_availability(
+            ip_addr.replace('.', '_'),
+            arrived_datetime
+        )
 
 
 def run_receiver_forever():

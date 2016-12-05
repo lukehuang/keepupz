@@ -155,7 +155,7 @@ class ZabbixHelpper(object):
                 ex_msg = 'Host %s already exists' % host_name
                 raise ZabbixAlreadyExistsException(ex_msg) from exc
 
-    def send_host_availability(self, host_name):
+    def send_host_availability(self, host_name, arrived_datetime):
         """ Create availability of one host in Zabbix
         """
         packet = ZabbixPacket()
@@ -164,6 +164,6 @@ class ZabbixHelpper(object):
             host_name,
             _ZBX_SENDER_KEY,
             1,
-            datetime.timestamp(datetime.now())
+            datetime.timestamp(arrived_datetime)
         )
         self.zbx_sender.send(packet)
