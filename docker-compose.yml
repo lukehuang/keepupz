@@ -8,10 +8,9 @@ services:
             - ZBX_SERVER=http://192.168.8.23
             - ZBX_USERNAME=Admin
             - ZBX_PASSWORD=zabbix
-            - ZBX_BGAN_TEMPLATE=ISPM - BGAN
-            - ZBX_BGAN_HOSTGROUP=BGAN
-            - ZBX_BGAN_ITEM=Agent ping
-            - ZBX_BGAN_KEY=agent.ping
+            - ZBX_TEMPLATE=ISPM - BGAN
+            - ZBX_HOSTGROUP=BGAN
+            - ZBX_NETWORK=192.168.8.35/32
         tty: true
         volumes:
             - /home/vguedes/projects/keepupz/icmpreceiver:/code
