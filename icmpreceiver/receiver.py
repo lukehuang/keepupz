@@ -17,7 +17,7 @@ from zabbix_helppers import (
 
 _ZBX_TEMPLATE = environ.get('ZBX_TEMPLATE')
 _ZBX_HOSTGROUP = environ.get('ZBX_HOSTGROUP')
-_ZBX_ALLOW_NETWORK = environ.get('ZBX_ALLOW_NETWORK')
+_ZBX_ALLOWED_NETWORK = environ.get('ZBX_ALLOWED_NETWORK').split(',')
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
 
 
@@ -29,10 +29,9 @@ async def produce(q):
         addr = addr[0]
 
         ip_addr = ipaddress.ip_address(addr)
-        ip_network = ipaddress.ip_network(_ZBX_ALLOW_NETWORK)
+        ip_networks = [ipaddress.ip_network(x) for x in _ZBX_ALLOWED_NETWORK]
 
-        if ip_addr in ip_network:
-            print ("ip %s in %s" % (addr, _ZBX_ALLOW_NETWORK))
+        if [network for network in ip_networks if ip_addr in network]:
             header = data[20:28]
             type, *_ = unpack('bbHHh', header)
 
