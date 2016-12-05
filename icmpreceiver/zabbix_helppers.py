@@ -124,12 +124,18 @@ class ZabbixHelpper(object):
             "type": 1,
             "port": "10050"
         }]
+        inventory = {
+            "notes": "my notes",
+            "tag": "BGAN",
+            "installer_name": "Netvision"
+        }
 
         try:
             call_rtrn = self.zapi.host.create(
                 groups=groups,
                 host=host_name,
-                inventory_mode=1,
+                inventory_mode="1",
+                inventory=inventory,
                 templates=templates,
                 interfaces=interfaces
             )
@@ -140,5 +146,5 @@ class ZabbixHelpper(object):
                 raise ZabbixAlreadyExistsException(ex_msg) from exc
 
     def send_host_availability(self, host_name):
-        """ Create one host in the Zabbix server
+        """ Create availability of one host in Zabbix
         """
