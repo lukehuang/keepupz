@@ -1,8 +1,8 @@
 version: '2'
 
 services:
-    icmpreceiver:
-        image: ispm/icmpreceiver
+    keepupz:
+        image: ispm/keepupz
         environment:
             - CONSUMER_TASKS=5
             - ZBX_SERVER=192.168.8.23
@@ -15,4 +15,4 @@ services:
             - ZBX_SENDER_KEY=agent.ping
         tty: true
         volumes:
-            - /home/vguedes/projects/keepupz/icmpreceiver:/code
+            - /home/vguedes/projects/keepupz:/code

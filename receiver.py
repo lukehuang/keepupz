@@ -17,7 +17,7 @@ from zabbix_helppers import (
 
 _ZBX_TEMPLATE = environ.get('ZBX_TEMPLATE')
 _ZBX_HOSTGROUP = environ.get('ZBX_HOSTGROUP')
-_ZBX_ALLOWED_NETWORKS = environ.get('ZBX_ALLOWED_NETWORK').split(',')
+_ZBX_ALLOWED_NETWORKS = environ.get('ZBX_ALLOWED_NETWORKS').split(',')
 
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
 

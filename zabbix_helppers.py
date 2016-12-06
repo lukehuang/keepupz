@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import socket
 import asyncio
+from sys import exit
 from os import environ
 from struct import unpack
 from datetime import datetime
@@ -36,13 +37,17 @@ class ZabbixHelpper(object):
         self.template_name = template_name
         try:
             self.zapi = ZabbixAPI("http://%s" % _ZBX_SERVER)
+            self.zapi.login(
+                _ZBX_USERNAME,
+                _ZBX_PASSWORD
+            )
         except Exception as e:
-            raise ZabbixParameterException("Check ZBX_SERVER env var.") from e
-        self.zapi.login(
-            _ZBX_USERNAME,
-            _ZBX_PASSWORD
-        )
-        self.zbx_sender = ZabbixSender(zbx_addr, 10051)
+            raise ZabbixParameterException("Check ZBX_SERVER.") from e
+        try:
+            self.zbx_sender = ZabbixSender(zbx_addr, 10051)
+        except Exception as e:
+            raise ZabbixParameterException("Check ZBX_SERVER.") from e
+
 
     # Get Zabbix group ID by hostgroup name
     def _getHostgroupId(self, hostgroup_name):

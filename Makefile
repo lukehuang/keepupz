@@ -4,4 +4,4 @@ help:
 
 build-image:
 	# docker build --rm -t ispm/icmpreceiver icmpreceiver/ && docker build --rm -t ispm/rconfig-api api/
-	docker build --rm -t ispm/icmpreceiver icmpreceiver/
+	docker build --rm -t ispm/keepupz .
