@@ -9,7 +9,7 @@ from os import environ
 from struct import unpack
 from datetime import datetime
 
-from zabbix_helppers import (
+from zabbix_helpers import (
     ZabbixAlreadyExistsException,
     ZabbixHelpper
 )
