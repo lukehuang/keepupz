@@ -12,6 +12,7 @@ _ZBX_SERVER = environ.get('ZBX_SERVER')
 _ZBX_USERNAME = environ.get('ZBX_USERNAME')
 _ZBX_PASSWORD = environ.get('ZBX_PASSWORD')
 _ZBX_SENDER_KEY = environ.get('ZBX_SENDER_KEY')
+_ZBX_SERVER_TIMEOUT = environ.get('ZBX_SERVER_TIMEOUT')
 
 
 class ZabbixNotFoundException(Exception):
@@ -31,12 +32,17 @@ class ZabbixHelpper(object):
         self,
         group_name=None,
         template_name=None,
-        zbx_addr=_ZBX_SERVER
+        zbx_addr=_ZBX_SERVER,
+        srv_timeout=None
     ):
         self.group_name = group_name
         self.template_name = template_name
+        self.srv_timeout = int(srv_timeout or _ZBX_SERVER_TIMEOUT)
         try:
-            self.zapi = ZabbixAPI("http://%s" % _ZBX_SERVER)
+            self.zapi = ZabbixAPI(
+                server="http://%s" % _ZBX_SERVER,
+                timeout=self.srv_timeout
+            )
             self.zapi.login(
                 _ZBX_USERNAME,
                 _ZBX_PASSWORD
