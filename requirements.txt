@@ -1,3 +1,4 @@
+ZabbixSender==0.2.7
 pyzabbix==0.7.4
 janus==0.2.3
-ZabbixSender==0.2.7
+mock
