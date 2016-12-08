@@ -1,14 +1,10 @@
 #!/bin/python
 
 from zabbix_helpers import (
-    ZabbixAlreadyExistsException,
     ZabbixParameterException,
     ZabbixNotFoundException,
-    ZabbixAPIException,
     ZabbixHelpper,
-    ZabbixSender,
     ZabbixPacket,
-    ZabbixAPI
 )
 
 from datetime import datetime
@@ -23,7 +19,6 @@ class ZabbixHelperTest(unittest.TestCase):
                 zbx_addr='10.23.76.98',
                 srv_timeout=1
             )
-
 
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getHostGroupId(self, mocked_zabbix_api):
@@ -42,7 +37,6 @@ class ZabbixHelperTest(unittest.TestCase):
             filter={'name': 'asd'}
         )
 
-
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getHostGroupId_wrong_hostgroup_name(self, mocked_zabbix_api):
         z = ZabbixHelpper(
@@ -51,8 +45,7 @@ class ZabbixHelperTest(unittest.TestCase):
         )
         z.zapi.hostgroup.get.return_value = []
         with self.assertRaises(ZabbixNotFoundException):
-            id = z._getHostgroupId('asd')
-
+            z._getHostgroupId('asd')
 
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getTemplateId(self, mocked_zabbix_api):
@@ -71,7 +64,6 @@ class ZabbixHelperTest(unittest.TestCase):
             filter={'name': 'asd'}
         )
 
-
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getTemplateId_wrong_template_name(self, mocked_zabbix_api):
         z = ZabbixHelpper(
@@ -81,8 +73,7 @@ class ZabbixHelperTest(unittest.TestCase):
 
         z.zapi.template.get.return_value = []
         with self.assertRaises(ZabbixNotFoundException):
-            id = z._getTemplateId('asd')
-
+            z._getTemplateId('asd')
 
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_createHost(self, mocked_zabbix_api):
@@ -129,31 +120,26 @@ class ZabbixHelperTest(unittest.TestCase):
             templates=[{'templateid': 22}]
         )
 
-    
+    @mock.patch.object(ZabbixPacket, "add")
     @mock.patch("zabbix_helpers.ZabbixSender")
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_send_host_availability(
         self,
         mocked_zabbix_api,
-        mocked_zabbix_sender
+        mocked_zabbix_sender,
+        mocked_zabbix_packet
     ):
+
         z = ZabbixHelpper(
             zbx_addr='10.23.76.98',
             srv_timeout=1
         )
 
-        mocked_zabbix_sender.ZabbixPacket.ZabbixPacket = zbx_pckt = mock.Mock()
-        zbx_pckt.add.return_value = None
-
         arrived_time = datetime.now()
         z.send_host_availability('host_name', arrived_time)
 
-        z.zbx_sender.send.return_value = None
-        z.zbx_sender.send.assert_called_with(
-            zbx_pckt
-        )
-
-
+        z.zbx_sender.send.assert_called()
+        mocked_zabbix_packet.assert_called()
 
 
 if __name__ == '__main__':
