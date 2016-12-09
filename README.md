@@ -1,5 +1,5 @@
 # Keepupz
-Build status: [![Build Status](https://snap-ci.com/ISPM/keepupz/branch/master/build_image)](https://snap-ci.com/ISPM/keepupz/branch/master)
+CI status: [![Build Status](https://snap-ci.com/ISPM/keepupz/branch/master/build_image)](https://snap-ci.com/ISPM/keepupz/branch/master)
 
 ## ICMP keep alive server for zabbix
 
