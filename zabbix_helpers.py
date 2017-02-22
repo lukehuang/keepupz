@@ -80,6 +80,8 @@ class ZabbixHelpper(object):
                     *args,
                     **kwargs
                 )
+            except ZabbixAPIException as e:
+                raise e
             except:
                 print("Error connecting to Zabbix Server. Retrying in 3secs!")
                 time.sleep(3)
