@@ -79,7 +79,7 @@ class ZabbixHelpper(object):
                     *args,
                     **kwargs
                 )
-            except ValueError:
+            except:
                 print("Error connecting to Zabbix Server. Retrying in 3secs!")
                 time.sleep(3)
                 self._connect_to_zabbix()
