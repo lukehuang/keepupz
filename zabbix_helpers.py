@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import time
 import socket
 import asyncio
 from sys import exit
@@ -195,7 +196,7 @@ class ZabbixHelpper(object):
             return call_rtrn
         except ZabbixAPIException as exc:
             if str(exc).startswith("('Error -32602:"):
-                ex_msg = 'Host %s already exists' % host_name
+                ex_msg = '\tHost %s already exists' % host_name
                 raise ZabbixAlreadyExistsException(ex_msg) from exc
 
     def send_host_availability(self, host_name, arrived_datetime):
