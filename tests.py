@@ -13,12 +13,16 @@ import mock
 
 
 class ZabbixHelperTest(unittest.TestCase):
-    def test_initialization_bad_server(self):
-        with self.assertRaises(ZabbixParameterException):
-            ZabbixHelpper(
-                zbx_addr='10.23.76.98',
-                srv_timeout=1
-            )
+    @mock.patch("zabbix_helpers.ZabbixAPI")
+    @mock.patch('builtins.print')
+    def test_initialization_bad_server(self, mk_print, mk_zapi):
+        msg_error = 'blah msg'
+        mk_zapi.side_effect = Exception(msg_error)
+        ZabbixHelpper(
+            zbx_addr='10.23.76.98',
+            srv_timeout=1
+        )
+        mk_print.assert_called_with("Error _connect_to_zabbix %s" % msg_error)
 
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getHostGroupId(self, mocked_zabbix_api):

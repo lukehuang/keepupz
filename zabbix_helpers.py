@@ -58,12 +58,8 @@ class ZabbixHelpper(object):
                 self.zbx_password
             )
         except Exception as e:
-            raise ZabbixParameterException(
-                "Error Zabbix - Check ZBX_SERVER."
-            ) from e
-        except Exception as e:
-            print(e)
-            raise
+            msg = 'Error _connect_to_zabbix %s'
+            print(msg % e)
 
     def _connect_to_zabbix_sender(self):
         try:
