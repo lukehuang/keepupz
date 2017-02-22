@@ -5,9 +5,9 @@ services:
         image: ispm/keepupz
         environment:
             - CONSUMER_TASKS=5
-            - ZBX_SERVER=192.168.8.23
-            - ZBX_USERNAME=Admin
-            - ZBX_PASSWORD=zabbix
+            - ZBX_SERVER=201.54.32.50:4887
+            - ZBX_USERNAME=keepupz
+            - ZBX_PASSWORD=ispmbr01
             - ZBX_TEMPLATE=ISPM - BGAN
             - ZBX_HOSTGROUP=BGAN
             # Comma separated CIDRs

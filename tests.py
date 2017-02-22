@@ -26,14 +26,16 @@ class ZabbixHelperTest(unittest.TestCase):
             zbx_addr='10.23.76.98',
             srv_timeout=1
         )
-        z.zapi.hostgroup.get.return_value = [{'groupid': 10}]
+        z._do_request = mock.Mock()
+        z._do_request.return_value = [{'groupid': 10}]
         id = z._getHostgroupId('asd')
         self.assertEqual(
             id,
             10
         )
 
-        z.zapi.hostgroup.get.assert_called_with(
+        z._do_request.assert_called_with(
+            'hostgroup.get',
             filter={'name': 'asd'}
         )
 
@@ -43,7 +45,8 @@ class ZabbixHelperTest(unittest.TestCase):
             zbx_addr='10.23.76.98',
             srv_timeout=1
         )
-        z.zapi.hostgroup.get.return_value = []
+        z._do_request = mock.Mock()
+        z._do_request.return_value = []
         with self.assertRaises(ZabbixNotFoundException):
             z._getHostgroupId('asd')
 
@@ -53,14 +56,16 @@ class ZabbixHelperTest(unittest.TestCase):
             zbx_addr='10.23.76.98',
             srv_timeout=1
         )
-        z.zapi.template.get.return_value = [{'templateid': 20}]
+        z._do_request = mock.Mock()
+        z._do_request.return_value = [{'templateid': 20}]
         id = z._getTemplateId('asd')
         self.assertEqual(
             id,
             20
         )
 
-        z.zapi.template.get.assert_called_with(
+        z._do_request.assert_called_with(
+            'template.get',
             filter={'name': 'asd'}
         )
 
@@ -71,7 +76,8 @@ class ZabbixHelperTest(unittest.TestCase):
             srv_timeout=1
         )
 
-        z.zapi.template.get.return_value = []
+        z._do_request = mock.Mock()
+        z._do_request.return_value = []
         with self.assertRaises(ZabbixNotFoundException):
             z._getTemplateId('asd')
 
@@ -88,7 +94,8 @@ class ZabbixHelperTest(unittest.TestCase):
         z._getTemplateId.return_value = 22
         z._getHostgroupId.return_value = 22
 
-        z.zapi.host.create.return_value = 20
+        z._do_request = mock.Mock()
+        z._do_request.return_value = 20
         id = z.createHost(
             "host_name",
             "10.0.0.10",
@@ -100,7 +107,8 @@ class ZabbixHelperTest(unittest.TestCase):
             20
         )
 
-        z.zapi.host.create.assert_called_with(
+        z._do_request.assert_called_with(
+            'host.create',
             groups=[{'groupid': 22}],
             host='host_name',
             interfaces=[{

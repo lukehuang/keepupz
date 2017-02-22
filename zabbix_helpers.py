@@ -33,31 +33,65 @@ class ZabbixHelpper(object):
         group_name=None,
         template_name=None,
         zbx_addr=_ZBX_SERVER,
+        zbx_username=_ZBX_USERNAME,
+        zbx_password=_ZBX_PASSWORD,
         srv_timeout=None
     ):
         self.group_name = group_name
         self.template_name = template_name
         self.srv_timeout = int(srv_timeout or _ZBX_SERVER_TIMEOUT)
+        self.zbx_addr = zbx_addr
+        self.zbx_username = zbx_username
+        self.zbx_password = zbx_password
+        self.zapi = None
+        self._connect_to_zabbix()
+        self._connect_to_zabbix_sender()
+
+    def _connect_to_zabbix(self):
         try:
             self.zapi = ZabbixAPI(
-                server="http://%s" % _ZBX_SERVER,
+                server="http://%s" % self.zbx_addr,
                 timeout=self.srv_timeout
             )
             self.zapi.login(
-                _ZBX_USERNAME,
-                _ZBX_PASSWORD
+                self.zbx_username,
+                self.zbx_password
             )
         except Exception as e:
-            raise ZabbixParameterException("Check ZBX_SERVER.") from e
-        try:
-            self.zbx_sender = ZabbixSender(zbx_addr, 10051)
+            raise ZabbixParameterException(
+                "Error Zabbix - Check ZBX_SERVER."
+            ) from e
         except Exception as e:
-            raise ZabbixParameterException("Check ZBX_SERVER.") from e
+            print(e)
+            raise
 
+    def _connect_to_zabbix_sender(self):
+        try:
+            self.zbx_sender = ZabbixSender(self.zbx_addr, 10051)
+        except Exception as e:
+            raise ZabbixParameterException(
+                "Error ZabbixSender - Check ZBX_SERVER."
+            ) from e
+
+    def _do_request(self, method, *args, **kwargs):
+        while 1:
+            try:
+                return getattr(
+                    self.zapi,
+                    method
+                ).dummy(
+                    *args,
+                    **kwargs
+                )
+            except ValueError:
+                print("Error connecting to Zabbix Server. Retrying in 3secs!")
+                time.sleep(3)
+                self._connect_to_zabbix()
 
     # Get Zabbix group ID by hostgroup name
     def _getHostgroupId(self, hostgroup_name):
-        hostgroups = self.zapi.hostgroup.get(
+        hostgroups = self._do_request(
+            'hostgroup.get',
             filter={'name': hostgroup_name}
         )
         if not hostgroups:
@@ -66,7 +100,8 @@ class ZabbixHelpper(object):
 
     # Get Zabbix template ID by template name
     def _getTemplateId(self, template_name):
-        templates = self.zapi.template.get(
+        templates = self._do_request(
+            'template.get',
             filter={'name': template_name}
         )
         if not templates:
@@ -152,7 +187,8 @@ class ZabbixHelpper(object):
         }
 
         try:
-            call_rtrn = self.zapi.host.create(
+            call_rtrn = self._do_request(
+                'host.create',
                 groups=groups,
                 host=host_name,
                 inventory_mode="1",
@@ -168,9 +204,11 @@ class ZabbixHelpper(object):
 
     def send_host_availability(self, host_name, arrived_datetime):
         """ Create availability of one host in Zabbix
+
+         The third parameter on package.add ()1 is the default value for
+         positive availability.
         """
         packet = ZabbixPacket()
-        # Marcel, 1 is the default value for availability available
         packet.add(
             host_name,
             _ZBX_SENDER_KEY,
