@@ -197,7 +197,10 @@ class ZabbixHelpper(object):
             )
             return call_rtrn
         except ZabbixAPIException as exc:
-            if str(exc).startswith("('Error -32602:"):
+            if (
+                "Error -32602: Invalid params., "
+                "Host with the same name"
+            ) in str(exc):
                 ex_msg = '\tHost %s already exists' % host_name
                 raise ZabbixAlreadyExistsException(ex_msg) from exc
 
