@@ -95,7 +95,8 @@ class ZabbixHelpper(object):
                     "Error -32602: Invalid params., "
                     "Host with the same name"
                 ) in str(e):
-                    ex_msg = '\tHost %s already exists' % host_name
+                    ex_msg = '\tHost %s already exists' % \
+                        kwargs.get('host', '')
                     raise ZabbixAlreadyExistsException(ex_msg) from exc
                 else:
                     # so tento reconectar se nao for hostduplicado
