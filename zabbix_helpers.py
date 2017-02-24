@@ -15,6 +15,9 @@ _ZBX_PASSWORD = environ.get('ZBX_PASSWORD')
 _ZBX_SENDER_KEY = environ.get('ZBX_SENDER_KEY')
 _ZBX_SERVER_TIMEOUT = environ.get('ZBX_SERVER_TIMEOUT')
 
+_ZBX_CONNECT_MAX_RETRY = 10  # max retry connect
+_ZBX_CONNECT_WAIT = 3  # secs to wait
+
 
 class ZabbixNotFoundException(Exception):
     pass
@@ -48,7 +51,7 @@ class ZabbixHelpper(object):
         self._connect_to_zabbix()
         self._connect_to_zabbix_sender()
 
-    def _connect_to_zabbix(self):
+    def _connect_to_zabbix(self, retry=0):
         try:
             self.zapi = ZabbixAPI(
                 server="http://%s" % self.zbx_addr,
@@ -59,8 +62,15 @@ class ZabbixHelpper(object):
                 self.zbx_password
             )
         except Exception as e:
-            msg = 'Error _connect_to_zabbix %s'
-            print(msg % e)
+            if retry < _ZBX_CONNECT_MAX_RETRY:
+                retry += 1
+                print("[_connect_to_zabbix] Error connecting to Zabbix Server."
+                      " Retrying in %ssecs!" % _ZBX_CONNECT_WAIT)
+                print("[_connect_to_zabbix] %s" % e)
+                time.sleep(_ZBX_CONNECT_WAIT)
+                self._connect_to_zabbix(retry)
+            else:
+                raise e
 
     def _connect_to_zabbix_sender(self):
         try:
@@ -80,12 +90,20 @@ class ZabbixHelpper(object):
                     *args,
                     **kwargs
                 )
-            except ZabbixAPIException as e:
-                raise e
-            except:
-                print("Error connecting to Zabbix Server. Retrying in 3secs!")
-                time.sleep(3)
-                self._connect_to_zabbix()
+            except Exception as e:
+                if (
+                    "Error -32602: Invalid params., "
+                    "Host with the same name"
+                ) in str(e):
+                    ex_msg = '\tHost %s already exists' % host_name
+                    raise ZabbixAlreadyExistsException(ex_msg) from exc
+                else:
+                    # so tento reconectar se nao for hostduplicado
+                    print("[_do_request] Error connecting to Zabbix Server."
+                          " Retrying in %ssecs!" % _ZBX_CONNECT_WAIT)
+                    print("[_do_request] %s" % e)
+                    time.sleep(_ZBX_CONNECT_WAIT)
+                    self._connect_to_zabbix()
 
     # Get Zabbix group ID by hostgroup name
     def _getHostgroupId(self, hostgroup_name):
@@ -185,24 +203,16 @@ class ZabbixHelpper(object):
             "installer_name": "Netvision"
         }
 
-        try:
-            call_rtrn = self._do_request(
-                'host.create',
-                groups=groups,
-                host=host_name,
-                inventory_mode="1",
-                inventory=inventory,
-                templates=templates,
-                interfaces=interfaces
-            )
-            return call_rtrn
-        except ZabbixAPIException as exc:
-            if (
-                "Error -32602: Invalid params., "
-                "Host with the same name"
-            ) in str(exc):
-                ex_msg = '\tHost %s already exists' % host_name
-                raise ZabbixAlreadyExistsException(ex_msg) from exc
+        call_rtrn = self._do_request(
+            'host.create',
+            groups=groups,
+            host=host_name,
+            inventory_mode="1",
+            inventory=inventory,
+            templates=templates,
+            interfaces=interfaces
+        )
+        return call_rtrn
 
     def send_host_availability(self, host_name, arrived_datetime):
         """ Create availability of one host in Zabbix

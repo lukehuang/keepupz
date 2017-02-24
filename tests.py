@@ -13,16 +13,21 @@ import mock
 
 
 class ZabbixHelperTest(unittest.TestCase):
+
+    @mock.patch("zabbix_helpers._ZBX_CONNECT_MAX_RETRY", 1)
+    @mock.patch("zabbix_helpers._ZBX_CONNECT_WAIT", 1)
     @mock.patch("zabbix_helpers.ZabbixAPI")
-    @mock.patch('builtins.print')
-    def test_initialization_bad_server(self, mk_print, mk_zapi):
+    def test_initialization_bad_server(self, mk_zapi):
         msg_error = 'blah msg'
         mk_zapi.side_effect = Exception(msg_error)
-        ZabbixHelpper(
-            zbx_addr='10.23.76.98',
-            srv_timeout=1
-        )
-        mk_print.assert_called_with("Error _connect_to_zabbix %s" % msg_error)
+        with self.assertRaises(Exception):
+            ZabbixHelpper(
+                zbx_addr='10.23.76.98',
+                srv_timeout=1
+            )
+        exp_calls = [mock.call(server='http://10.23.76.98', timeout=1),
+                     mock.call(server='http://10.23.76.98', timeout=1)]
+        self.assertEquals(exp_calls, mk_zapi.call_args_list)
 
     @mock.patch("zabbix_helpers.ZabbixAPI")
     def test_getHostGroupId(self, mocked_zabbix_api):

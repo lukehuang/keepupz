@@ -52,7 +52,7 @@ def consume(name, q):
     while True:
         ip_addr, arrived_datetime = q.sync_q.get()
         q.sync_q.task_done()
-        print("consumer %s processed :%s" % (str(name), ip_addr))
+        print("[consume] consumer %s processed :%s" % (str(name), ip_addr))
         try:
             rtrn = zbxHelpper.createHost(
                 ip_addr.replace('.', '_'),
@@ -60,11 +60,24 @@ def consume(name, q):
             )
             print(rtrn)
         except ZabbixAlreadyExistsException as e:
-            print(e)
-        zbxHelpper.send_host_availability(
-            ip_addr.replace('.', '_'),
-            arrived_datetime
-        )
+            print("[consume] %s" % e)
+        except Exception as e:
+            print("[consume] %s ---> skipping next!" % e)
+            continue
+
+        host_name = ""
+        try:
+            host_name = ip_addr.replace('.', '_')
+            zbxHelpper.send_host_availability(
+                host_name,
+                arrived_datetime
+            )
+        except Exception as e:
+            print("[consume] #### UNKNOW EXCEPTION in send_host_availability")
+            print("[consume] %s" % host_name)
+            print("[consume] %s" % e)
+        else:
+            print("\t[consume] * host: %s available on Zabbix" % host_name)
 
 
 def run_receiver_forever():
