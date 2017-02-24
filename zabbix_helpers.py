@@ -97,7 +97,7 @@ class ZabbixHelpper(object):
                 ) in str(e):
                     ex_msg = '\tHost %s already exists' % \
                         kwargs.get('host', '')
-                    raise ZabbixAlreadyExistsException(ex_msg) from exc
+                    raise ZabbixAlreadyExistsException(ex_msg) from e
                 else:
                     # so tento reconectar se nao for hostduplicado
                     print("[_do_request] Error connecting to Zabbix Server."
