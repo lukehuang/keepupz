@@ -14,6 +14,7 @@ services:
             - ZBX_ALLOWED_NETWORKS=192.168.8.35/32,192.168.8.27/32
             - ZBX_SENDER_KEY=agent.ping
             - ZBX_SERVER_TIMEOUT=120
+            - ZBX_WAIT_AFTER_CREATE_HOST=3
         tty: true
         volumes:
             - /home/vguedes/projects/keepupz:/code
