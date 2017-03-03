@@ -76,7 +76,7 @@ def consume(name, q):
             continue
         else:
             try:
-                time.sleep(_ZBX_WAIT_AFTER_CREATE_HOST)
+                time.sleep(int(_ZBX_WAIT_AFTER_CREATE_HOST))
                 # send initial data to zabbix handle the first data
                 # situation, so we can send a trap on autosignin using
                 # zabbix
