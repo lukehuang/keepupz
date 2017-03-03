@@ -215,7 +215,8 @@ class ZabbixHelpper(object):
         )
         return call_rtrn
 
-    def send_host_availability(self, host_name, arrived_datetime):
+    def send_host_availability(self, host_name, arrived_datetime,
+                               positive_availability=1):
         """ Create availability of one host in Zabbix
 
          The third parameter on package.add ()1 is the default value for
@@ -225,7 +226,7 @@ class ZabbixHelpper(object):
         packet.add(
             host_name,
             _ZBX_SENDER_KEY,
-            1,
+            positive_availability,
             datetime.timestamp(arrived_datetime)
         )
         self.zbx_sender.send(packet)

@@ -52,7 +52,15 @@ def consume(name, q):
     while True:
         ip_addr, arrived_datetime = q.sync_q.get()
         q.sync_q.task_done()
+        host_name = ""
+        first_ping = True
         print("[consume] consumer %s processed :%s" % (str(name), ip_addr))
+        try:
+            host_name = ip_addr.replace('.', '_')
+        except Exception as e:
+            print("[consume] error on hostname %s ---> skipping next!: %s" % (
+                ip_addr, e))
+            continue
         try:
             rtrn = zbxHelpper.createHost(
                 ip_addr.replace('.', '_'),
@@ -60,24 +68,39 @@ def consume(name, q):
             )
             print(rtrn)
         except ZabbixAlreadyExistsException as e:
-            print("[consume] %s" % e)
+            first_ping = False
+            print("[consume] HOST already Exist! - %s" % e)
         except Exception as e:
             print("[consume] %s ---> skipping next!" % e)
             continue
-
-        host_name = ""
-        try:
-            host_name = ip_addr.replace('.', '_')
-            zbxHelpper.send_host_availability(
-                host_name,
-                arrived_datetime
-            )
-        except Exception as e:
-            print("[consume] #### UNKNOW EXCEPTION in send_host_availability")
-            print("[consume] %s" % host_name)
-            print("[consume] %s" % e)
         else:
-            print("\t[consume] * host: %s available on Zabbix" % host_name)
+            try:
+                # send initial data to zabbix handle the first data
+                # situation, so we can send a trap on autosignin using
+                # zabbix
+                zbxHelpper.send_host_availability(
+                    host_name,
+                    arrived_datetime,
+                    0
+                )
+            except Exception as e:
+                print("[consume] send_host_availability ZERO %s"
+                      " ---> skipping next!" % e)
+                continue
+
+        if not first_ping:
+            try:
+                zbxHelpper.send_host_availability(
+                    host_name,
+                    arrived_datetime
+                )
+            except Exception as e:
+                print("[consume] #### UNKNOW EXCEPTION"
+                      " in send_host_availability")
+                print("[consume] %s" % host_name)
+                print("[consume] %s" % e)
+            else:
+                print("[consume] * host %s is available on Zabbix" % host_name)
 
 
 def run_receiver_forever():
