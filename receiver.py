@@ -66,10 +66,10 @@ def consume(name, q):
                 ip_addr.replace('.', '_'),
                 ip_addr
             )
-            print(rtrn)
+            print("[consume] Host created: %s" % rtrn)
         except ZabbixAlreadyExistsException as e:
             first_ping = False
-            print("[consume] HOST already Exist! - %s" % e)
+            print("[consume] %s" % e)
         except Exception as e:
             print("[consume] %s ---> skipping next!" % e)
             continue
@@ -83,6 +83,7 @@ def consume(name, q):
                     arrived_datetime,
                     0
                 )
+                print("[consume] * Initial Availability ZERO on zabbix")
             except Exception as e:
                 print("[consume] send_host_availability ZERO %s"
                       " ---> skipping next!" % e)
