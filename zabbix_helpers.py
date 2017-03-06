@@ -216,7 +216,7 @@ class ZabbixHelpper(object):
         return call_rtrn
 
     def send_host_availability(self, host_name, arrived_datetime,
-                               positive_availability=1):
+                               positive_availability=1, retry=0):
         """ Create availability of one host in Zabbix
 
          The third parameter on package.add ()1 is the default value for
@@ -230,3 +230,22 @@ class ZabbixHelpper(object):
             datetime.timestamp(arrived_datetime)
         )
         self.zbx_sender.send(packet)
+        processed = 0
+        try:
+            ret_dct = dict(
+                item.split(':') for item in self.zbx_sender.status[
+                    'info'].split(";"))
+            processed = int(ret_dct['processed'])
+        except Exception as e:
+            print("[send_host_availability] Error parsing zbx response")
+            print("[send_host_availability] %s" % e)
+
+        if processed == 0 and retry < _ZBX_CONNECT_MAX_RETRY:
+            print("[send_host_availability] Packet not processed by zbx"
+                  " Retrying in %ssecs!" % _ZBX_CONNECT_WAIT)
+            time.sleep(_ZBX_CONNECT_WAIT)
+            retry += 1
+            self.send_host_availability(host_name,
+                                        arrived_datetime,
+                                        positive_availability,
+                                        retry)
