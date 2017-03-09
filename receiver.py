@@ -18,7 +18,6 @@ from zabbix_helpers import (
 _ZBX_TEMPLATE = environ.get('ZBX_TEMPLATE')
 _ZBX_HOSTGROUP = environ.get('ZBX_HOSTGROUP')
 _ZBX_ALLOWED_NETWORKS = environ.get('ZBX_ALLOWED_NETWORKS').split(',')
-_ZBX_WAIT_AFTER_CREATE_HOST = environ.get('ZBX_WAIT_AFTER_CREATE_HOST') or 3
 
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
 
@@ -74,22 +73,6 @@ def consume(name, q):
         except Exception as e:
             print("[consume] %s ---> skipping next!" % e)
             continue
-        else:
-            try:
-                time.sleep(int(_ZBX_WAIT_AFTER_CREATE_HOST))
-                # send initial data to zabbix handle the first data
-                # situation, so we can send a trap on autosignin using
-                # zabbix
-                zbxHelpper.send_host_availability(
-                    host_name,
-                    arrived_datetime,
-                    0
-                )
-                print("[consume] * Initial Availability ZERO on zabbix")
-            except Exception as e:
-                print("[consume] send_host_availability ZERO %s"
-                      " ---> skipping next!" % e)
-                continue
 
         if not first_ping:
             try:
