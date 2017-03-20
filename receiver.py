@@ -55,6 +55,7 @@ def consume(name, q):
         host_name = ""
         first_ping = True
         print("[consume] consumer %s processed :%s" % (str(name), ip_addr))
+        print("[consume] Queue length [%s]" % q.sync_q.qsize())
         try:
             host_name = ip_addr.replace('.', '_')
         except Exception as e:
