@@ -21,6 +21,8 @@ _ZBX_ALLOWED_NETWORKS = environ.get('ZBX_ALLOWED_NETWORKS').split(',')
 
 _CONSUMERS = int(environ.get('CONSUMER_TASKS'))
 
+lock = threading.Lock()
+
 
 async def produce(q):
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
@@ -62,18 +64,19 @@ def consume(name, q):
             print("[consume] error on hostname %s ---> skipping next!: %s" % (
                 ip_addr, e))
             continue
-        try:
-            rtrn = zbxHelpper.createHost(
-                ip_addr.replace('.', '_'),
-                ip_addr
-            )
-            print("[consume] Host created: %s" % rtrn)
-        except ZabbixAlreadyExistsException as e:
-            first_ping = False
-            print("[consume] %s" % e)
-        except Exception as e:
-            print("[consume] %s ---> skipping next!" % e)
-            continue
+        with lock:
+            try:
+                rtrn = zbxHelpper.createHost(
+                    ip_addr.replace('.', '_'),
+                    ip_addr
+                )
+                print("[consume] Host created: %s" % rtrn)
+            except ZabbixAlreadyExistsException as e:
+                first_ping = False
+                print("[consume] %s" % e)
+            except Exception as e:
+                print("[consume] %s ---> skipping next!" % e)
+                continue
 
         if not first_ping:
             try:
