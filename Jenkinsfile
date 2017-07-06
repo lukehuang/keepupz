@@ -20,12 +20,5 @@ git tag -a $VERSION -m "Jenkins auto build $VERSION"
 git push github tag $VERSION'''
       }
     }
-    stage('S3') {
-      steps {
-        sh '''VERSION=`cat img_out/version`
-gzip img_out/ispm_keepupz_$VERSION.tar
-aws s3 cp img_out/ispm_keepupz_$VERSION.tar.gz s3://ispm-artifacts-repository/docker/keepupz/ --content-type="application/x-gzip"'''
-      }
-    }
   }
 }
