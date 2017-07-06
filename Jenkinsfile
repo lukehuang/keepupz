@@ -15,8 +15,13 @@ echo $dt > img_out/version'''
       steps {
         sh '''VERSION=`cat img_out/version`
 docker run --rm ispm/keepupz:$VERSION python tests.py
+
+set +e
 git remote add github git@github.com:ISPM/keepupz.git
+set -e
+
 git tag -a $VERSION -m "Jenkins auto build $VERSION"
+
 git push github tag $VERSION'''
       }
     }
