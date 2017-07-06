@@ -1,6 +1,6 @@
 # Keepupz
 
-[![Build Status](http://192.168.8.238:8080/buildStatus/icon?job=ISPM/keepupz/master)](http://192.168.8.238:8080/job/ISPM/job/keepupz/job/master/)
+[![Build Status](http://ci.netvision.inf.br/buildStatus/icon?job=ISPM/keepupz/master)](http://ci.netvision.inf.br/job/ISPM/job/keepupz/job/master/)
 
 ## ICMP keep alive server for zabbix
 
